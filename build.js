@@ -12,7 +12,7 @@ const VITE_BIN = path.resolve(ACTION_DIR, 'node_modules', '.bin', 'vite');
 const TIMESTAMP = Date.now(); 
 
 async function buildDashboard() {
-  console.log("🏗️  Starting MockMirror Build...");
+  console.log("🏗️  Starting AI Frontend Previewer Build...");
 
   if (!fs.existsSync(ANALYSIS_PATH)) {
     console.error("❌ No analysis file found.");
@@ -47,20 +47,20 @@ async function buildDashboard() {
     // This script runs inside the browser preview to hijack fetch calls
     const networkMocks = data.network_mocks || [];
     const interceptorScript = `
-      // 🕵️ MockMirror Network Interceptor
+      // 🕵️ AI Frontend Previewer Network Interceptor
       const MOCKS = ${JSON.stringify(networkMocks)};
       
       const originalFetch = window.fetch;
       
       window.fetch = async (url, options) => {
-        console.log("[MockMirror] Intercepting request to:", url);
+        console.log("[AI Frontend Previewer] Intercepting request to:", url);
         
         // Simple logic: If we have ANY mocks, return the first one that matches loosely
         // or just return the first mock if it's a generic "api" call
         const mock = MOCKS.find(m => url.toString().includes(m.url_pattern) || m.url_pattern === '*') || MOCKS[0];
 
         if (mock) {
-          console.log("[MockMirror] Serving mock data:", mock.response);
+          console.log("[AI Frontend Previewer] Serving mock data:", mock.response);
           // Simulate network delay for realism
           await new Promise(r => setTimeout(r, 500));
           
@@ -72,7 +72,7 @@ async function buildDashboard() {
           };
         }
 
-        console.warn("[MockMirror] No mock found for:", url, " - This might fail.");
+        console.warn("[AI Frontend Previewer] No mock found for:", url, " - This might fail.");
         return originalFetch(url, options);
       };
     `;
@@ -87,13 +87,15 @@ async function buildDashboard() {
       // Inject the interceptor BEFORE the component mounts
       ${interceptorScript}
       
-      const mockProps = ${JSON.stringify(data.props)};
+      const { children: __childrenHTML, ...mockProps } = ${JSON.stringify(data.props)};
 
       ReactDOM.createRoot(document.getElementById('root')).render(
         <div style={{ padding: '20px', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', boxSizing: 'border-box' }}>
           <div style={{ width: '100%', height: '100%' }}>
             ${wrapperStart}
-              <TargetComponent {...mockProps} />
+              <TargetComponent {...mockProps}>
+                {__childrenHTML ? <div dangerouslySetInnerHTML={{ __html: __childrenHTML }} /> : null}
+              </TargetComponent>
             ${wrapperEnd}
           </div>
         </div>

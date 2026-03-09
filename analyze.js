@@ -33,7 +33,10 @@ try {
 
 async function analyzeAll() {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
+  const model = genAI.getGenerativeModel(
+    { model: "gemini-2.5-flash" },
+    { apiVersion: "v1beta" }
+  );
 
   const masterAnalysis = {};
 
@@ -50,7 +53,7 @@ async function analyzeAll() {
 
       // --- STEP 2: CONSTRUCT PROMPT ---
       const prompt = `
-        You are a Full-Stack Data Mocking Expert. 
+        You are a Full-Stack Data Mocking Expert. Your job is to produce a JSON object with realistic mock data so a React component can be rendered in isolation.
         
         PROJECT CONTEXT:
         ${projectContext}
@@ -59,24 +62,25 @@ async function analyzeAll() {
         Filename: "${filename}"
         Is TypeScript: ${isTS}
 
-        TASK:
-        1. Analyze props (like before).
-        2. **NEW:** Analyze the code for network calls (fetch, axios, api.* calls).
-        3. Infer the **Response Structure** those calls expect based on how the variables are used in the JSX (e.g. if code uses 'data.user.name', the mock MUST be { user: { name: "..." } }).
+        YOUR TASKS:
+        1. **Props:** Read all props the component uses (from its function signature, destructuring, or PropTypes). For EVERY prop, produce a realistic mock value. The "props" field must be a flat object like { "propName": <actual value> }. DO NOT leave it empty or use placeholder text like "...". If the component has no props, output {}.
+        2. **Wrappers:** Detect if the component uses react-router hooks/components (set router:true), Redux hooks (set redux:true), or React Query (set query:true).
+        3. **Network Mocks:** Find every fetch/axios/api call. For each, infer the response shape from how the returned data is used in JSX (e.g. if code does response.data.user.name, the mock response must be { data: { user: { name: "Alice" } } }). Use "*" as url_pattern if the URL is dynamic.
 
         STRICT GUIDELINES:
-        1. **Network Mocks:** If the component fetches data, generate a 'network_mocks' object.
-           - Key: The URL path (e.g., "/api/user", "/api/tasks"). Use "*" if the URL is dynamic.
-           - Value: The JSON response object.
-        2. **Realism:** Use realistic data (names, dates, prices).
-        3. **Images:** Use valid placeholders (placehold.co, ui-avatars.com).
+        - All string values must be realistic (real-looking names, dates like "2026-03-09", prices like 29.99, image URLs from https://placehold.co or https://ui-avatars.com).
+        - Arrays must contain at least 2-3 realistic items.
+        - Never output empty objects for props if the component has props.
+        - **children prop:** If the component accepts a 'children' prop, generate a realistic HTML string (not JSX) based on what this component is used for in the project. For example, if this is a Modal in a task manager, children should look like a task detail form with real field values — NOT generic filler like "This is some detailed content". Use the PROJECT CONTEXT above to determine what domain-specific content belongs here.
+        - NEVER use generic placeholder phrases like "This is some content", "Lorem ipsum", "Some text here", or "...". Every value must reflect the actual purpose of this project.
+        - Output ONLY the JSON object below — no explanation, no markdown fences.
         
-        Output JSON format:
+        OUTPUT FORMAT (strict JSON, no other text):
         {
-          "props": { ... },
-          "wrappers": { "router": boolean, "redux": boolean, "query": boolean },
+          "props": { "propName": <realistic value>, ... },
+          "wrappers": { "router": false, "redux": false, "query": false },
           "network_mocks": [
-             { "url_pattern": "string (regex-like or partial match)", "method": "GET", "response": { ...json... } }
+             { "url_pattern": "/api/example", "method": "GET", "response": { ... } }
           ]
         }
 
@@ -84,10 +88,28 @@ async function analyzeAll() {
         ${code}
       `;
 
-      const result = await model.generateContent(prompt);
-      const text = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
-      
-      masterAnalysis[filePath] = JSON.parse(text);
+      const result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json' },
+      });
+      const rawText = result.response.text();
+
+      // Robust JSON extraction: strip fences and find the outermost { ... } block
+      let text = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+      const firstBrace = text.indexOf('{');
+      const lastBrace = text.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1) {
+        text = text.slice(firstBrace, lastBrace + 1);
+      }
+
+      let parsed;
+      try {
+        parsed = JSON.parse(text);
+      } catch (parseErr) {
+        console.error(`   ❌ JSON parse failed for ${filePath}. Raw response:\n${rawText}`);
+        throw parseErr;
+      }
+      masterAnalysis[filePath] = parsed;
 
       if (FILES.length > 1) {
         process.stdout.write("      (Waiting 4s to avoid rate limit...)\n");
