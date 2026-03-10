@@ -53,17 +53,20 @@ async function buildDashboard() {
       const originalFetch = window.fetch;
       
       window.fetch = async (url, options) => {
-        console.log("[AI Frontend Previewer] Intercepting request to:", url);
+        const urlStr = url.toString();
+        // Match against the path/endpoint portion only, ignoring base URL and query params
+        let urlPath;
+        try { urlPath = new URL(urlStr).pathname; } catch { urlPath = urlStr; }
         
-        // Simple logic: If we have ANY mocks, return the first one that matches loosely
-        // or just return the first mock if it's a generic "api" call
-        const mock = MOCKS.find(m => url.toString().includes(m.url_pattern) || m.url_pattern === '*') || MOCKS[0];
+        const mock = MOCKS.find(m => {
+          if (!m.url_pattern || m.url_pattern === '*') return true;
+          // match against pathname or full url
+          return urlPath.includes(m.url_pattern) || urlStr.includes(m.url_pattern);
+        });
 
         if (mock) {
-          console.log("[AI Frontend Previewer] Serving mock data:", mock.response);
-          // Simulate network delay for realism
-          await new Promise(r => setTimeout(r, 500));
-          
+          console.log("[AI Frontend Previewer] Mock matched for:", urlStr);
+          await new Promise(r => setTimeout(r, 300));
           return {
             ok: true,
             status: 200,
@@ -72,8 +75,15 @@ async function buildDashboard() {
           };
         }
 
-        console.warn("[AI Frontend Previewer] No mock found for:", url, " - This might fail.");
-        return originalFetch(url, options);
+        // No mock found — return empty but valid response so component doesn't hang
+        console.warn("[AI Frontend Previewer] No mock for:", urlStr, "— returning empty response.");
+        await new Promise(r => setTimeout(r, 300));
+        return {
+          ok: true,
+          status: 200,
+          json: async () => (Array.isArray([]) ? [] : {}),
+          text: async () => '[]'
+        };
       };
     `;
 

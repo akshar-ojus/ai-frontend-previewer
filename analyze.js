@@ -65,7 +65,7 @@ async function analyzeAll() {
         YOUR TASKS:
         1. **Props:** Read all props the component uses (from its function signature, destructuring, or PropTypes). For EVERY prop, produce a realistic mock value. The "props" field must be a flat object like { "propName": <actual value> }. DO NOT leave it empty or use placeholder text like "...". If the component has no props, output {}.
         2. **Wrappers:** Detect if the component uses react-router hooks/components (set router:true), Redux hooks (set redux:true), or React Query (set query:true).
-        3. **Network Mocks:** Find every fetch/axios/api call. For each, infer the response shape from how the returned data is used in JSX (e.g. if code does response.data.user.name, the mock response must be { data: { user: { name: "Alice" } } }). Use "*" as url_pattern if the URL is dynamic.
+        3. **Network Mocks:** Find EVERY SINGLE fetch/axios/api call in the component, including those inside Promise.all(). For each one, generate a separate entry in 'network_mocks'. Infer the response shape from how the returned data is used in JSX (e.g. if code does response.data.user.name, the mock response must be { data: { user: { name: "Alice" } } }). Use the last segment of the URL path as the url_pattern (e.g. "/tasks", "/projects", "/team-members"). If a call returns an array (e.g. setTasks(data)), the response must be an array with 2-3 items.
 
         STRICT GUIDELINES:
         - All string values must be realistic (real-looking names, dates like "2026-03-09", prices like 29.99, image URLs from https://placehold.co or https://ui-avatars.com).
