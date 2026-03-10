@@ -126,7 +126,13 @@ async function buildDashboard() {
   
   const dashboardSrc = fs.readFileSync(path.join(ACTION_DIR, 'src', 'Dashboard.jsx'), 'utf8');
   const dashboardCss = fs.readFileSync(path.join(ACTION_DIR, 'src', 'dashboard.css'), 'utf8');
-  const adjustedDashboardSrc = dashboardSrc.replace("import { previews } from './dashboard.data';", "import { previews } from './dashboard.data.js';");
+  const logoPath = path.resolve(ACTION_DIR, 'src', 'logo.svg');
+  const logoBase64 = fs.existsSync(logoPath)
+    ? `data:image/svg+xml;base64,${fs.readFileSync(logoPath).toString('base64')}`
+    : '';
+  const adjustedDashboardSrc = dashboardSrc
+    .replace("import { previews } from './dashboard.data';", "import { previews } from './dashboard.data.js';")
+    .replace("import logo from './logo.svg';", `const logo = '${logoBase64}';`);
   fs.writeFileSync(path.join(USER_DIR, 'mm-dashboard.jsx'), adjustedDashboardSrc);
   fs.writeFileSync(path.join(USER_DIR, 'dashboard.css'), dashboardCss);
   const dataFileContent = `export const previews = ${JSON.stringify(dashboardData, null, 2)};`;

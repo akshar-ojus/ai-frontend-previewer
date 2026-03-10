@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 220" fill="none">
+  <defs>
+    <linearGradient id="brainFill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="codeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#c4b5fd"/>
+    </linearGradient>
+    <linearGradient id="playGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="streamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Brain shape (left-facing, scalloped) -->
+  <path d="
+    M115,25
+    C105,22 93,24 85,30
+    C76,28 65,32 62,41
+    C53,42 46,50 48,59
+    C42,64 40,73 44,80
+    C40,87 41,97 48,102
+    C50,112 58,119 68,120
+    C72,128 80,133 90,133
+    C96,140 105,143 113,140
+    C118,145 127,146 134,142
+    C142,144 150,139 153,131
+    C161,129 167,122 166,113
+    C172,108 174,99 170,92
+    C174,85 173,75 167,70
+    C168,61 163,53 155,50
+    C151,41 143,36 134,36
+    C128,29 121,24 115,25Z
+  " fill="url(#brainFill)" opacity="0.85"/>
+
+  <!-- Neural network nodes -->
+  <circle cx="80" cy="55" r="4.5" fill="#1e1b4b" filter="url(#glow)"/>
+  <circle cx="105" cy="45" r="4.5" fill="#1e1b4b" filter="url(#glow)"/>
+  <circle cx="135" cy="50" r="4.5" fill="#1e1b4b" filter="url(#glow)"/>
+  <circle cx="155" cy="68" r="4.5" fill="#1e1b4b" filter="url(#glow)"/>
+  <circle cx="68" cy="80" r="4.5" fill="#1e1b4b" filter="url(#glow)"/>
+  <circle cx="95" cy="78" r="5" fill="#0ea5e9" filter="url(#glow)"/>
+  <circle cx="130" cy="80" r="4.5" fill="#1e1b4b" filter="url(#glow)"/>
+  <circle cx="158" cy="95" r="4" fill="#c084fc" filter="url(#glow)"/>
+  <circle cx="75" cy="108" r="4.5" fill="#c084fc" filter="url(#glow)"/>
+  <circle cx="108" cy="115" r="5" fill="#0ea5e9" filter="url(#glow)"/>
+  <circle cx="145" cy="110" r="4.5" fill="#1e1b4b" filter="url(#glow)"/>
+
+  <!-- Neural connections -->
+  <line x1="80" y1="55" x2="105" y2="45" stroke="#1e1b4b" stroke-width="1.5" opacity="0.6"/>
+  <line x1="105" y1="45" x2="135" y2="50" stroke="#1e1b4b" stroke-width="1.5" opacity="0.6"/>
+  <line x1="135" y1="50" x2="155" y2="68" stroke="#1e1b4b" stroke-width="1.5" opacity="0.6"/>
+  <line x1="80" y1="55" x2="68" y2="80" stroke="#1e1b4b" stroke-width="1.5" opacity="0.6"/>
+  <line x1="80" y1="55" x2="95" y2="78" stroke="#1e1b4b" stroke-width="1.5" opacity="0.6"/>
+  <line x1="105" y1="45" x2="95" y2="78" stroke="#1e1b4b" stroke-width="1.5" opacity="0.6"/>
+  <line x1="135" y1="50" x2="130" y2="80" stroke="#1e1b4b" stroke-width="1.5" opacity="0.6"/>
+  <line x1="155" y1="68" x2="158" y2="95" stroke="#1e1b4b" stroke-width="1.5" opacity="0.6"/>
+  <line x1="95" y1="78" x2="130" y2="80" stroke="#1e1b4b" stroke-width="1.5" opacity="0.6"/>
+  <line x1="68" y1="80" x2="75" y2="108" stroke="#1e1b4b" stroke-width="1.5" opacity="0.6"/>
+  <line x1="95" y1="78" x2="108" y2="115" stroke="#1e1b4b" stroke-width="1.5" opacity="0.6"/>
+  <line x1="130" y1="80" x2="145" y2="110" stroke="#1e1b4b" stroke-width="1.5" opacity="0.6"/>
+  <line x1="158" y1="95" x2="145" y2="110" stroke="#1e1b4b" stroke-width="1.5" opacity="0.6"/>
+  <line x1="75" y1="108" x2="108" y2="115" stroke="#1e1b4b" stroke-width="1.5" opacity="0.6"/>
+  <line x1="108" y1="115" x2="145" y2="110" stroke="#1e1b4b" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- </> code symbol on brain -->
+  <text x="108" y="100" text-anchor="middle" font-family="monospace" font-size="26" font-weight="bold" fill="url(#codeGrad)" filter="url(#glow)">&lt;/&gt;</text>
+
+  <!-- Play triangle (top right) -->
+  <polygon points="152,28 152,82 200,55" fill="url(#playGrad)" opacity="0.9"/>
+
+  <!-- Brain stem / connector flowing down-right -->
+  <path d="M125,140 Q135,158 155,162 Q175,166 195,158" stroke="url(#streamGrad)" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.85"/>
+  <path d="M118,143 Q130,165 155,170 Q182,175 205,162" stroke="url(#streamGrad)" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.5"/>
+  <path d="M112,147 Q126,172 155,178 Q186,184 212,168" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.4"/>
+
+  <!-- Code symbols flowing out -->
+  <text x="195" y="156" font-family="monospace" font-size="11" font-weight="bold" fill="#6366f1">{}</text>
+  <text x="195" y="170" font-family="monospace" font-size="11" fill="#6366f1">/*</text>
+  <text x="195" y="184" font-family="monospace" font-size="11" fill="#06b6d4">&lt;/</text>
+  <text x="222" y="156" font-family="monospace" font-size="11" fill="#6366f1">→</text>
+  <text x="222" y="170" font-family="monospace" font-size="11" fill="#6366f1">─</text>
+  <text x="222" y="184" font-family="monospace" font-size="11" fill="#06b6d4">;</text>
+
+  <!-- Small browser/preview window icon -->
+  <rect x="238" y="148" width="30" height="22" rx="3" stroke="#6366f1" stroke-width="1.8" fill="none"/>
+  <line x1="238" y1="155" x2="268" y2="155" stroke="#6366f1" stroke-width="1.5"/>
+  <circle cx="242" cy="152" r="1.2" fill="#6366f1"/>
+  <circle cx="247" cy="152" r="1.2" fill="#6366f1"/>
+</svg>
