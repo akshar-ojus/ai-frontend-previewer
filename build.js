@@ -67,11 +67,25 @@ async function buildDashboard() {
         if (mock) {
           console.log("[AI Frontend Previewer] Mock matched for:", urlStr);
           await new Promise(r => setTimeout(r, 300));
+          
+          let responseData = mock.response;
+          if (mock.response_function) {
+            try {
+              let searchParams;
+              try { searchParams = new URL(urlStr).searchParams; } catch { searchParams = new URLSearchParams(''); }
+              const fn = new Function('params', mock.response_function);
+              const result = fn(searchParams);
+              if (result !== undefined) responseData = result;
+            } catch (fnErr) {
+              console.warn("[AI Frontend Previewer] response_function error for:", urlStr, fnErr.message, "— using static response");
+            }
+          }
+          
           return {
             ok: true,
             status: 200,
-            json: async () => mock.response,
-            text: async () => JSON.stringify(mock.response)
+            json: async () => responseData,
+            text: async () => JSON.stringify(responseData)
           };
         }
 
@@ -150,10 +164,22 @@ async function buildDashboard() {
   const indexHtml = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><title>AI Frontend Previewer</title><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" /><meta http-equiv="Pragma" content="no-cache" /><meta http-equiv="Expires" content="0" /></head><body><div id="root"></div><script type="module" src="/mm-dashboard.jsx?t=${TIMESTAMP}"></script></body></html>`;
   fs.writeFileSync(path.join(USER_DIR, 'index.html'), indexHtml);
   viteInputs['main'] = path.resolve(USER_DIR, 'index.html');
-  const viteConfigContent = `import { defineConfig } from 'vite'; import react from '@vitejs/plugin-react'; import path from 'path'; export default defineConfig({ root: '${USER_DIR}', plugins: [react()], base: './', build: { outDir: 'dist', emptyOutDir: true, rollupOptions: { input: ${JSON.stringify(viteInputs)} } }, resolve: { alias: { '/dashboard.css': path.resolve('${USER_DIR}', 'dashboard.css'), 'react': path.resolve('${ACTION_DIR}', 'node_modules', 'react'), 'react-dom': path.resolve('${ACTION_DIR}', 'node_modules', 'react-dom'), 'react/jsx-runtime': path.resolve('${ACTION_DIR}', 'node_modules', 'react/jsx-runtime'), 'react-router-dom': path.resolve('${ACTION_DIR}', 'node_modules', 'react-router-dom'), 'react-router': path.resolve('${ACTION_DIR}', 'node_modules', 'react-router'), '@remix-run/router': path.resolve('${ACTION_DIR}', 'node_modules', '@remix-run/router'), } } });`;
+  const viteConfigContent = `import { defineConfig } from 'vite'; import react from '@vitejs/plugin-react'; import path from 'path'; export default defineConfig({ root: '${USER_DIR}', plugins: [react()], base: './', build: { outDir: 'dist', emptyOutDir: true, rollupOptions: { input: ${JSON.stringify(viteInputs)} } }, resolve: { modules: ['${USER_DIR}/node_modules', '${ACTION_DIR}/node_modules', 'node_modules'], alias: { '/dashboard.css': path.resolve('${USER_DIR}', 'dashboard.css'), 'react': path.resolve('${ACTION_DIR}', 'node_modules', 'react'), 'react-dom': path.resolve('${ACTION_DIR}', 'node_modules', 'react-dom'), 'react/jsx-runtime': path.resolve('${ACTION_DIR}', 'node_modules', 'react/jsx-runtime'), 'react-router-dom': path.resolve('${ACTION_DIR}', 'node_modules', 'react-router-dom'), 'react-router': path.resolve('${ACTION_DIR}', 'node_modules', 'react-router'), '@remix-run/router': path.resolve('${ACTION_DIR}', 'node_modules', '@remix-run/router'), } } });`;
   const configPath = path.join(ACTION_DIR, 'vite.config.mjs');
   fs.writeFileSync(configPath, viteConfigContent);
-  try { console.log("📦 Running Vite Build..."); execSync(`"${VITE_BIN}" build --config "${configPath}"`, { stdio: 'inherit' }); console.log("🎉 Dashboard Build Complete!"); } catch (err) { console.error("❌ Build Failed:", err.message); process.exit(1); }
+
+  // Install user project dependencies if node_modules is missing
+  const userNodeModules = path.join(USER_DIR, 'node_modules');
+  if (fs.existsSync(path.join(USER_DIR, 'package.json')) && !fs.existsSync(userNodeModules)) {
+    console.log("📦 Installing user project dependencies...");
+    try {
+      execSync('npm install --ignore-scripts', { cwd: USER_DIR, stdio: 'inherit' });
+    } catch (e) {
+      console.warn("⚠️ Could not install user project dependencies:", e.message);
+    }
+  }
+
+  try { console.log("📦 Running Vite Build..."); execSync(`"${VITE_BIN}" build --config "${configPath}"`, { stdio: 'inherit', cwd: USER_DIR }); console.log("🎉 Dashboard Build Complete!"); } catch (err) { console.error("❌ Build Failed:", err.message); process.exit(1); }
 }
 
 buildDashboard();
